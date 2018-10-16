@@ -1,5 +1,3 @@
-key ="Thats my Kung Fu";
-str ="Two One Nine Two"
 
 Sbox =\
     "63, 7c, 77, 7b, f2, 6b, 6f, c5, 30, 01, 67, 2b, fe, d7, ab, 76, " \
@@ -190,13 +188,24 @@ def binFixser(binVal):
 def matrix_print(a):
     for i in range(len(a)):
         print(*a[i]);
+    return
+####
+##test Here:
+key ="Thats my Kung Fu";
+str ="Two One Nine Two";
 
-data = generateMatrix(str,key);
-retM = matrixXOR(data[0],data[1]);
-sM =substitute(retM);
-shiftMatrix(sM)
-colmix = mult_matrix(sM);
+data = generateMatrix(str, key);
+plainText_matrix = data[0];
+key_matrix = data[1];
+print("PlainText Matrix in HEX:")
+matrix_print(plainText_matrix);
+print("RoundKey 0 in Hex:")
+matrix_print(key_matrix);
 
+
+
+
+###
 
 
 
