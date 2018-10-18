@@ -69,10 +69,28 @@ def runSbox(val1):
     new_w =list();
     while len(val) != 0:
         ch = list(val.pop());
+        print(ch)
         row = int(ch[0], 16);
         col = int(ch[1], 16);
+        print(ch[0],row)
+        print(ch[1],col)
         hexCh = Sbox[row][col];
         new_w.append(hexCh);
+    return new_w;
+
+#left off here
+def runSboxMatrix(val1):
+    new_w = [[0x00 for x in range(len(val1))] for y in range(len(val1[0]))];
+    val = val1.copy();
+
+    for i in range(len(new_w)):
+        for j in range(len(new_w[0])):
+            ch = list(val[i][j]);
+            row = int(ch[0], 16);
+            col = int(ch[1], 16);
+            hexCh = Sbox[row][col];
+            new_w[i][j]= hexCh
+
     return new_w;
 
 def addRoundConst(val1):
@@ -143,66 +161,88 @@ def shiftMatrix(matrix):
         i+=1;
     return matrix;
 
-def mult_matrix(X):
-    mixMatrix =[['02', '03', '01', '01'],
-                ['01', '02', '03', '01'],
-                ['01', '01', '02', '03'],
-                ['03', '01', '01', '02']]
+def XORmatrix(a,b):
+    result = [[0x00 for a in range(len(a))] for y in range(len(a[0]))];
+    stringToByteConverter(a);
+    stringToByteConverter(b);
+    for i in range(len(a)):
+        for j in range(len(a[0])):
+            result[i][j] = a[i][j]^b[i][j]
+    bytetoStringConverter(result)
+    return result
 
-    result = [['00' for x in range(len(X))] for y in range(len(mixMatrix[0]))];
-    r = '';
-    for i in range(len(mixMatrix)):
-        # iterate through columns of Y
+def mixCol(X):
+    mixMatrix =[[0x02, 0x03, 0x01,0x01],
+                [0x01, 0x02, 0x03, 0x01],
+                [0x01, 0x01, 0x02, 0x03],
+                [0x03, 0x01, 0x01, 0x02]]
+    print("mixMatrix", type(X[0][0]))
+    X = stringToByteConverter(X);
+    result = [[0x00 for x in range(len(X))] for y in range(len(mixMatrix[0]))];
+    for i in range(len(X)):
         for j in range(len(X[0])):
-            # iterate through rows of Y
             for k in range(len(X)):
-                if k == 1:
-                    r =  hex( (int(mixMatrix[i][k-1], 16) * int(X[k][j], 16)) ^ int(X[k][j],16) )[2::].zfill(8);
-                    print("k is 1",mixMatrix[i][k-1], '*', X[k][j],'^', X[k][j], bin(int(r, 16))[2::].zfill(8));
-                else:
-                    r = hex(int(mixMatrix[i][k], 16) * int(X[k][j], 16))[2::].zfill(8);
-                    print(mixMatrix[i][k], '*', X[k][j], bin(int(r, 16))[2::].zfill(8));
+                result[i][j] ^= result[i][j] ^ hexMult(mixMatrix[i][k], X[k][j]);
 
-                binr = bin(int(r,16))[2::];
-                if len(binr)>8:
-                    print("val here:",r, binr);
-                    r = binFixser(binr);
-                result[i][j] = hex(int(result[i][j],16) ^ int(r,16));
-
-    print('out');
+    result =bytetoStringConverter(result);
     return result;
-
-def binFixser(binVal):
-    b = binVal;
-    gf = '100011011';
-    print("big b ",b);
-    xor = bin(int(b, 2) ^ int(gf, 2))[2::];
-    while len(xor)>8:
-        xor = bin(int(xor,2) ^int(gf,2))[2::];
-        #print(xor);
-    print("bin: ",xor);
-    print('hex:', hex(int(xor,2)));
-    return xor;
 
 
 def matrix_print(a):
     for i in range(len(a)):
-        print(*a[i]);
+        print(a[i][0],a[i][1],a[i][2],a[i][3]);
     return
+
+def stringToByteConverter(matrix):
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            matrix[i][j] = int(matrix[i][j],16);
+    return matrix;
+
+def bytetoStringConverter(matrix):
+    for i in range(len(matrix)):
+        for j in range(len(matrix[0])):
+            matrix[i][j] = (hex(matrix[i][j]).replace('0x','')).rjust(2,"0");
+
+    return matrix;
+
+
+def hexMult(a,b):
+    mult = a* b
+    binval = bin(mult);
+    gf = '100011011';
+    xor = int(binval, 2) ^ int(gf, 2);
+
+    return int(hex(xor), 16);
 ####
 ##test Here:
 key ="Thats my Kung Fu";
 str ="Two One Nine Two";
 
+
 data = generateMatrix(str, key);
-plainText_matrix = data[0];
-key_matrix = data[1];
+state_matrix = (data[0]);
+key_matrix = (data[1]);
 print("PlainText Matrix in HEX:")
-matrix_print(plainText_matrix);
+#atrix_print(plainText_matrix);
 print("RoundKey 0 in Hex:")
+matrix_print(state_matrix);
+print()
 matrix_print(key_matrix);
+xorM = XORmatrix(state_matrix,key_matrix)
+print()
+matrix_print(xorM)
+print(len(xorM),len(xorM[1]))
+sboxedMatrix = runSboxMatrix(xorM);
+print("Sboxed Matrix")
+matrix_print(sboxedMatrix)
+mixed_Matrix = mixCol(sboxedMatrix);
+matrix_print(mixed_Matrix)
 
 
+## Only Mix Matrix Remaining:
+##
+##
 
 
 ###
