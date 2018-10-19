@@ -69,11 +69,8 @@ def runSbox(val1):
     new_w =list();
     while len(val) != 0:
         ch = list(val.pop());
-        print(ch)
         row = int(ch[0], 16);
         col = int(ch[1], 16);
-        print(ch[0],row)
-        print(ch[1],col)
         hexCh = Sbox[row][col];
         new_w.append(hexCh);
     return new_w;
@@ -118,21 +115,25 @@ def generateW(wval):
         wval.append(XOR(wval[i+4],wval[i+1]))
     return wval;
 
+
 def generateRoundkey(val):
-    w1 = generateW(w(val));
-    return w1;
+    key_m = w(val)
+    gen = generateW(key_m);
+    return gen;
 
 def generateMatrix(plainText,the_key):
     hex_plain = plain_breaker(plainText);
     roundKey = generateRoundkey(the_key);
     plain_Matrix = [[0 for x in range(4)] for y in range(4)];
     roundKey_Matrix = [[0 for x in range(4)] for y in range(4)];
-    j = 0;
+    roundKey1_Matrix= [[0 for x in range(4)] for y in range(4)];
+
     for i in range(4):
         for j in range(4):
             plain_Matrix[i][j] = hex_plain[j][i];
             roundKey_Matrix[i][j] = roundKey[j][i];
-    return plain_Matrix,roundKey_Matrix;
+            roundKey1_Matrix[i][j] = roundKey[j+4][i];
+    return plain_Matrix,roundKey_Matrix,roundKey1_Matrix;
 
 
 def matrixXOR(plainM,roundkeyM):
@@ -191,6 +192,10 @@ def matrix_print(a):
         print(a[i][0],a[i][1],a[i][2],a[i][3]);
     return
 
+def sprint(s,a):
+    print(s);
+    matrix_print(a);
+
 def stringToByteConverter(matrix):
     for i in range(len(matrix)):
         for j in range(len(matrix[0])):
@@ -216,6 +221,13 @@ def hexMult(a,b):
         xor = int(binval, 2) ^ int(gf, 2);
         return xor
     return int(hex(mult), 16);
+
+def matrixToString(m):
+    s =""
+    for i in range(len(m)):
+        for j in range(len(m[0])):
+            s+= m[j][i]
+    return s
 ####
 ##test Here:
 key ="Thats my Kung Fu";
@@ -223,14 +235,17 @@ str ="Two One Nine Two";
 
 
 data = generateMatrix(str, key);
+
 state_matrix = (data[0]);
 key_matrix = (data[1]);
+key2_matrix=(data[2]);
+
 print("PlainText Matrix in HEX:")
-#atrix_print(plainText_matrix);
-print("RoundKey 0 in Hex:")
 matrix_print(state_matrix);
-print()
+print("RoundKey 0 in Hex:")
 matrix_print(key_matrix);
+print("Round 1 key in hex")
+matrix_print(key2_matrix);
 
 print("round 1 Pre-processing:")
 #peform xor on state Matrix
@@ -247,6 +262,16 @@ matrix_print(shiftedMatrix)
 print("\nRun colimn mix:")
 mixed_Matrix = mixCol(shiftedMatrix);
 matrix_print(mixed_Matrix)
+
+print("\nAdd that with round1KEy:")
+round1final = XORmatrix(mixed_Matrix,key2_matrix)
+matrix_print(round1final)
+print()
+print("CypherText:", matrixToString(round1final))
+
+
+
+
 
 
 ## Only Mix Matrix Remaining:
