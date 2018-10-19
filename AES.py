@@ -176,14 +176,12 @@ def mixCol(X):
                 [0x01, 0x02, 0x03, 0x01],
                 [0x01, 0x01, 0x02, 0x03],
                 [0x03, 0x01, 0x01, 0x02]]
-    print("mixMatrix", type(X[0][0]))
     X = stringToByteConverter(X);
     result = [[0x00 for x in range(len(X))] for y in range(len(mixMatrix[0]))];
     for i in range(len(X)):
         for j in range(len(X[0])):
             for k in range(len(X)):
-                result[i][j] ^= result[i][j] ^ hexMult(mixMatrix[i][k], X[k][j]);
-
+                result[i][j] ^= hexMult(mixMatrix[i][k], X[k][j]);
     result =bytetoStringConverter(result);
     return result;
 
@@ -208,12 +206,16 @@ def bytetoStringConverter(matrix):
 
 
 def hexMult(a,b):
-    mult = a* b
+    if a==0x3:
+        mult = ((a-0x01)*b)^b
+    else:
+        mult = a* b
     binval = bin(mult);
     gf = '100011011';
-    xor = int(binval, 2) ^ int(gf, 2);
-
-    return int(hex(xor), 16);
+    if len(bin(mult)[2::]) > 8:
+        xor = int(binval, 2) ^ int(gf, 2);
+        return xor
+    return int(hex(mult), 16);
 ####
 ##test Here:
 key ="Thats my Kung Fu";
@@ -229,14 +231,21 @@ print("RoundKey 0 in Hex:")
 matrix_print(state_matrix);
 print()
 matrix_print(key_matrix);
+
+print("round 1 Pre-processing:")
+#peform xor on state Matrix
 xorM = XORmatrix(state_matrix,key_matrix)
-print()
+print("\nXOR the two matrices to form a State Matrix")
 matrix_print(xorM)
-print(len(xorM),len(xorM[1]))
+#run sbox on state Matrix
 sboxedMatrix = runSboxMatrix(xorM);
-print("Sboxed Matrix")
+print("\nSboxed Matrix")
 matrix_print(sboxedMatrix)
-mixed_Matrix = mixCol(sboxedMatrix);
+print("\nShift Columns of State Matrix")
+shiftedMatrix=shiftMatrix(sboxedMatrix)
+matrix_print(shiftedMatrix)
+print("\nRun colimn mix:")
+mixed_Matrix = mixCol(shiftedMatrix);
 matrix_print(mixed_Matrix)
 
 
